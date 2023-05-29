@@ -24,14 +24,14 @@ void print() {
 void setup() {
     rkConfig cfg;
     cfg.owner = "vasek"; // Ujistěte se, že v aplikace RBController máte nastavené stejné
-    cfg.name = "mojerobotka";
+    cfg.name = "SokolSus";
     cfg.motor_max_power_pct = 100; // limit výkonu motorů na xx %
 
     cfg.motor_enable_failsafe = false;
     cfg.rbcontroller_app_enable = false; // nepoužívám mobilní aplikaci (lze ji vypnout - kód se zrychlí, ale nelze ji odstranit z kódu -> kód se nezmenší)
     rkSetup(cfg);
     Serial.begin(115200);  // COM port 25 pocitac Burda
-    if (!SerialBT.begin("TCA-BRobotka")) //Bluetooth device name; zapnutí BT musí být až za rkSetup(cfg); jinak to nebude fungovat a bude to tvořit reset ESP32
+    if (!SerialBT.begin("TCA-BSokolSus")) //Bluetooth device name; zapnutí BT musí být až za rkSetup(cfg); jinak to nebude fungovat a bude to tvořit reset ESP32
     {
         Serial.println("!!! Bluetooth initialization failed!");
     } else {
@@ -45,7 +45,7 @@ void setup() {
     std::thread t1(print);
 
     delay(300);
-    fmt::print("{}'s Robotka '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
+    fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
     while(true) {
@@ -53,13 +53,14 @@ void setup() {
             {
                 float axis_0 = (abs(axis[0]) < 10) ? 0 : -axis[0] /128.0; 
                 //axis_0 = axis_0*axis_0*axis_0;
-                float axis_3 = (abs(axis[3]) < 10) ? 0 : -axis[3] /128.0; 
+                float axis_2 = (abs(axis[2]) < 10) ? 0 : -axis[2] /128.0; 
                 // axis_1 = axis_1*axis_1*axis_1;
-                int levy_m = (axis_3 - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
-                int pravy_m = (axis_3 + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor 
+                int levy_m = (axis_2 - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
+                int pravy_m = (axis_2 + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor 
                                 
                 if (BTworks) {
                     SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
+                    fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
                 }
                 else {
                     fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
