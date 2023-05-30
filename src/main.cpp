@@ -18,6 +18,7 @@ void print() {
         SerialBT.println(a);
         a++;
         delay(1000);
+        
     }
 }
 
@@ -55,9 +56,12 @@ void setup() {
                 //axis_0 = axis_0*axis_0*axis_0;
                 float axis_2 = (abs(axis[2]) < 10) ? 0 : -axis[2] /128.0; 
                 // axis_1 = axis_1*axis_1*axis_1;
-                int levy_m = (axis_2 - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
-                int pravy_m = (axis_2 + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor 
-                                
+                int levy_m = ((axis_2 * -1) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
+                int pravy_m = ((axis_2 * -1) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
+
+                Serial.println(levy_m);
+                
+
                 if (BTworks) {
                     SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
                     fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
@@ -65,7 +69,9 @@ void setup() {
                 else {
                     fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
                 }
-                rkMotorsSetSpeed(levy_m, pravy_m);
+                
+                rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
+                
             }
         delay(1);
     }
