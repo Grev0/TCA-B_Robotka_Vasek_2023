@@ -51,26 +51,44 @@ void setup() {
     fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
-    rkSetup(cfg);
-    servoBus.begin(4, UART_NUM_2, GPIO_NUM_27);
-    servoBus.set
+    servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
+    static int n = 0;
+    while (true)
+    {
+        uint16_t angle = (n % 240);
+
+        servoBus.set(0, Angle::deg(angle));
+        servoBus.set(1, Angle::deg(angle));
+        servoBus.set(2, Angle::deg(angle));
+        printf("Move to %d \n", angle);
+
+        delay(500);
+
+        auto curPos = servoBus.pos(0);
+        printf("Position at %f \n", curPos.deg());
+
+        n += 15;
+        delay(1000);
+    }
+    
+    
 
 
-    servoBus.setAutoStop(0, true);
+    // servoBus.setAutoStop(0, true);
     printf("Start\n");
     
 
-    while (true)
-    {
-        // delay(1000);
-        // servoBus.set(254, Angle::deg(110), 200.f, 1.f);
-        // delay(2000);
-        for(int i = 0; i < 255; i++) {
-            // printf("S %d = %d\n", servoBus.getId(i));
-            servoBus.set(i; Angle::deg(110), 200.f, 1.f)
-            delay(100);
-        }
-    }
+    // while (true)
+    // {
+    //     // delay(1000);
+    //     // servoBus.set(254, Angle::deg(110), 200.f, 1.f);
+    //     // delay(2000);
+    //     for(int i = 0; i < 255; i++) {
+    //         // printf("S %d = %d\n", servoBus.getId(i));
+    //         servoBus.set(i; Angle::deg(110), 200.f, 1.f)
+    //         delay(100);
+    //     }
+    // }
     
 
     while(true) {
@@ -92,7 +110,7 @@ void setup() {
                 }
 
         if (btn[0] == true)
-                { 
+                {  
                     plus_or_minus = 1;
             }
                 Serial.println(levy_m);
