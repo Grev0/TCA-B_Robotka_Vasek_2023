@@ -51,7 +51,9 @@ void setup() {
     fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
-    servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
+    servoBus.begin(4, UART_NUM_1, GPIO_NUM_27);
+
+
     static int n = 0;
     while (true)
     {
@@ -60,12 +62,13 @@ void setup() {
         servoBus.set(0, Angle::deg(angle));
         servoBus.set(1, Angle::deg(angle));
         servoBus.set(2, Angle::deg(angle));
+        servoBus.set(3, Angle::deg(angle));
         printf("Move to %d \n", angle);
 
         delay(500);
 
-        auto curPos = servoBus.pos(0);
-        printf("Position at %f \n", curPos.deg());
+        float curPos = servoBus.pos(0).deg();
+        printf("Position at %f \n", curPos);
 
         n += 15;
         delay(1000);
