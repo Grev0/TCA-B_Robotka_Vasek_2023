@@ -51,7 +51,7 @@ void setup() {
     fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
-    servoBus.begin(4, UART_NUM_1, GPIO_NUM_27);
+    servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
 
 
     
@@ -78,6 +78,14 @@ void setup() {
     int PoziceDole = 50;
     int PoziceNahore = 150;
 
+    int PoziceKlepetoJedna;
+    int PoziceKlepetoDva;
+
+    int Pozice_KlepetoJedna_Zavrena = 10;
+    int Pozice_KlepetoJedna_Otevrena = 100;
+    
+    int KtereServo = 1;
+
     int OKolikPosouvatPozici = 1;
 
     while(true) {
@@ -98,12 +106,15 @@ void setup() {
             //.................................jizda..dopredu..jizda..dozadu................
             if (btn[0] == true) {  
                 plus_or_minus = 1;
+                KtereServo = 1;
             }
                 
             if (btn[0] == false) { 
                 plus_or_minus = -1;
+                KtereServo = 0;
             }
             //................................ovladani..drapaku.............
+            /*
             if(btn[1] == true){
                 if(btn[4] == false || btn[3] == false){
                     PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
@@ -116,6 +127,7 @@ void setup() {
                 }
                 PoziceDrapaku = PoziceNahore;
             }
+            
             if(btn[1] == false){
                 if(btn[4] == false || btn[3] == false){
                     PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
@@ -128,17 +140,45 @@ void setup() {
                 }
                 PoziceDrapaku = PoziceDole;
             }
+            */
+            if(btn[1] == true){
+                if(btn[4] == false || btn[3] == false){
+                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena; // Ja vim ze je to blbost ale nech me byt
+                }
+                if(btn[4] == true){
+                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena + OKolikPosouvatPozici;
+                }
+                if(btn[3] == true){
+                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena - OKolikPosouvatPozici;
+                }
+                PoziceKlepetoJedna = Pozice_KlepetoJedna_Otevrena;
+            }
+            if(btn[1] == false){
+                if(btn[4] == false || btn[3] == false){
+                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena; // Ja vim ze je to blbost ale nech me byt
+                }
+                if(btn[4] == true){
+                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena + OKolikPosouvatPozici;
+                }
+                if(btn[3] == true){
+                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena - OKolikPosouvatPozici;
+                }
+                PoziceKlepetoJedna = Pozice_KlepetoJedna_Zavrena;
+            }
 
-            servoBus.set(2, Angle::deg(PoziceDrapaku));
-            servoBus.set(3, Angle::deg(PoziceDrapaku));
+            servoBus.set(KtereServo, Angle::deg(PoziceKlepetoJedna));
+
+            //servoBus.set(2, Angle::deg(PoziceDrapaku));
+            //servoBus.set(3, Angle::deg(PoziceDrapaku));
 
             if (BTworks) {
-                SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
-                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
+                SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(PoziceKlepetoJedna);
+                fmt::print("levy: {}, pravy: {} \n ", levy_m, PoziceKlepetoJedna );
             }
             else {
-                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
+                fmt::print("levy: {}, pravy: {} \n ", levy_m, PoziceKlepetoJedna);
             }
+
             
             rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
                 
