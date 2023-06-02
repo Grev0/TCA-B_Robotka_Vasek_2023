@@ -54,25 +54,7 @@ void setup() {
     servoBus.begin(4, UART_NUM_1, GPIO_NUM_27);
 
 
-    static int n = 0;
-    while (true)
-    {
-        uint16_t angle = (n % 240);
-
-        servoBus.set(0, Angle::deg(angle));
-        servoBus.set(1, Angle::deg(angle));
-        servoBus.set(2, Angle::deg(angle));
-        servoBus.set(3, Angle::deg(angle));
-        printf("Move to %d \n", angle);
-
-        delay(500);
-
-        float curPos = servoBus.pos(0).deg();
-        printf("Position at %f \n", curPos);
-
-        n += 15;
-        delay(1000);
-    }
+    
     
     
 
@@ -92,47 +74,73 @@ void setup() {
     //         delay(100);
     //     }
     // }
-    
+    int PoziceDrapaku;
+    int PoziceDole = 50;
+    int PoziceNahore = 150;
+
+    int OKolikPosouvatPozici = 1;
 
     while(true) {
-        if ( read_joystick() )
-            {
+        if ( read_joystick() ){
+
                 float axis_0 = (abs(axis[0]) < 10) ? 0 : -axis[0] /128.0; 
                 //axis_0 = axis_0*axis_0*axis_0;
                 float axis_2 = (abs(axis[2]) < 10) ? 0 : -axis[2] /128.0; 
                 // axis_1 = axis_1*axis_1*axis_1;
 
-
                 int levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
                 int pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
 
-                if(levy_m + pravy_m > 160 || levy_m + pravy_m < -160)
-                {
-                    levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /4 )) * speed_coef;
-                    pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /4 )) * speed_coef;
-                }
-
-        if (btn[0] == true)
-                {  
-                    plus_or_minus = 1;
+            if(levy_m + pravy_m > 160 || levy_m + pravy_m < -160) {
+                levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /4 )) * speed_coef;
+                pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /4 )) * speed_coef;
             }
-                Serial.println(levy_m);
+            //.................................jizda..dopredu..jizda..dozadu................
+            if (btn[0] == true) {  
+                plus_or_minus = 1;
+            }
                 
-        if (btn[0] == false)
-            { 
+            if (btn[0] == false) { 
                 plus_or_minus = -1;
             }
-                Serial.println(levy_m);
+            //................................ovladani..drapaku.............
+            if(btn[1] == true){
+                if(btn[4] == false || btn[3] == false){
+                    PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
+                }
+                if(btn[4] == true){
+                    PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
+                }
+                if(btn[3] == true){
+                    PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
+                }
+                PoziceDrapaku = PoziceNahore;
+            }
+            if(btn[1] == false){
+                if(btn[4] == false || btn[3] == false){
+                    PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
+                }
+                if(btn[4] == true){
+                    PoziceDole = PoziceDole + OKolikPosouvatPozici;
+                }
+                if(btn[3] == true){
+                    PoziceDole = PoziceDole - OKolikPosouvatPozici;
+                }
+                PoziceDrapaku = PoziceDole;
+            }
 
-                if (BTworks) {
-                    SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
-                    fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
-                }
-                else {
-                    fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
-                }
-                
-                rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
+            servoBus.set(2, Angle::deg(PoziceDrapaku));
+            servoBus.set(3, Angle::deg(PoziceDrapaku));
+
+            if (BTworks) {
+                SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
+                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
+            }
+            else {
+                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
+            }
+            
+            rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
                 
             }
         delay(1);
