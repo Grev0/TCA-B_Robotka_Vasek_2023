@@ -78,13 +78,14 @@ void setup() {
     int PoziceDole = 50;
     int PoziceNahore = 150;
 
-    int PoziceKlepetoJedna;
-    int PoziceKlepetoDva;
+    int Pozice_KlepetoJedna01;
+    int Pozice_KlepetoJedna02;
 
-    int Pozice_KlepetoJedna_Zavrena = 10;
-    int Pozice_KlepetoJedna_Otevrena = 100;
-    
-    int KtereServo = 1;
+    int Pozice_KlepetoJedna01_Zavrena = 21;
+    int Pozice_KlepetoJedna01_Otevrena = 126;
+   
+    int Pozice_KlepetoJedna02_Zavrena = 79;
+    int Pozice_KlepetoJedna02_Otevrena = 177;
 
     int OKolikPosouvatPozici = 1;
 
@@ -114,7 +115,7 @@ void setup() {
                 KtereServo = 0;
             }
             //................................ovladani..drapaku.............
-            /*
+            
             if(btn[1] == true){
                 if(btn[4] == false || btn[3] == false){
                     PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
@@ -140,36 +141,22 @@ void setup() {
                 }
                 PoziceDrapaku = PoziceDole;
             }
-            */
-            if(btn[1] == true){
-                if(btn[4] == false || btn[3] == false){
-                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena; // Ja vim ze je to blbost ale nech me byt
-                }
-                if(btn[4] == true){
-                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena + OKolikPosouvatPozici;
-                }
-                if(btn[3] == true){
-                    Pozice_KlepetoJedna_Otevrena = Pozice_KlepetoJedna_Otevrena - OKolikPosouvatPozici;
-                }
-                PoziceKlepetoJedna = Pozice_KlepetoJedna_Otevrena;
-            }
-            if(btn[1] == false){
-                if(btn[4] == false || btn[3] == false){
-                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena; // Ja vim ze je to blbost ale nech me byt
-                }
-                if(btn[4] == true){
-                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena + OKolikPosouvatPozici;
-                }
-                if(btn[3] == true){
-                    Pozice_KlepetoJedna_Zavrena = Pozice_KlepetoJedna_Zavrena - OKolikPosouvatPozici;
-                }
-                PoziceKlepetoJedna = Pozice_KlepetoJedna_Zavrena;
-            }
+            
+        if(btn[0] == true){
+            Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
+            delay(300);
+            Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Otevrena;
+        }
+        if(btn[0] == false){
+            Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Zavrena;
+            delay(300);
+            Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Zavrena;
+        }
+            servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01))
+            servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
 
-            servoBus.set(KtereServo, Angle::deg(PoziceKlepetoJedna));
-
-            //servoBus.set(2, Angle::deg(PoziceDrapaku));
-            //servoBus.set(3, Angle::deg(PoziceDrapaku));
+            servoBus.set(2, Angle::deg(PoziceDrapaku));
+            servoBus.set(3, Angle::deg(PoziceDrapaku));
 
             if (BTworks) {
                 SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(PoziceKlepetoJedna);
