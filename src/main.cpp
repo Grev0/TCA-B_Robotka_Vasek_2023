@@ -26,6 +26,20 @@ constexpr size_t buttonStatePosition = 2;
 void handleAxes(const char buffer[bufferSize]);
 void handleButton(const char buffer[bufferSize]);
 
+int PoziceDrapaku;
+int PoziceDole = 50;
+int PoziceNahore = 150;
+
+int Pozice_KlepetoJedna01;
+int Pozice_KlepetoJedna02;
+
+int Pozice_KlepetoJedna01_Zavrena = 21;
+int Pozice_KlepetoJedna01_Otevrena = 126;
+
+int Pozice_KlepetoJedna02_Zavrena = 79;
+int Pozice_KlepetoJedna02_Otevrena = 177;
+
+int OKolikPosouvatPozici = 1;
 
 int plus_or_minus = 1;
 // podle potreby proved kalibraci
@@ -81,20 +95,7 @@ void setup() {
     // servoBus.setAutoStop(0, true);
     printf("Start\n");
 
-    int PoziceDrapaku;
-    int PoziceDole = 50;
-    int PoziceNahore = 150;
 
-    int Pozice_KlepetoJedna01;
-    int Pozice_KlepetoJedna02;
-
-    int Pozice_KlepetoJedna01_Zavrena = 21;
-    int Pozice_KlepetoJedna01_Otevrena = 126;
-
-    int Pozice_KlepetoJedna02_Zavrena = 79;
-    int Pozice_KlepetoJedna02_Otevrena = 177;
-
-    int OKolikPosouvatPozici = 1;
 
     int count = 0;
 
@@ -139,10 +140,12 @@ void setup() {
             //.................................jizda..dopredu..jizda..dozadu................
             if (btn[0] == true) {
                 plus_or_minus = 1;
+                printf("Zmena smeru 1\n");
             }
 
             if (btn[0] == false) {
                 plus_or_minus = -1;
+                printf("Zmena smeru -1\n");
             }
             //................................ovladani..drapaku.............
 
@@ -284,9 +287,9 @@ void handleAxes(const char buffer[bufferSize]) {
     //     man.servoBus().set(armId, armDown);
 }
 
-void handleButton(const char buffer[bufferSize]) {
-    size_t id = buffer[buttonIdPosition];
-    uint8_t state = buffer[buttonStatePosition];
+void handleButton(const char btn[bufferSize]) {
+    size_t id = btn[buttonIdPosition];
+    uint8_t state = btn[buttonStatePosition];
 
     if (id >= buttonCount) {
         ESP_LOGE("UDP Parser", "Button id out of bounds");
@@ -294,6 +297,59 @@ void handleButton(const char buffer[bufferSize]) {
 
     // ESP_LOGI("UDP Parser", "Button %u changed to %u\n", id, state);
     printf("Button %u changed to %u\n", id, state);
+
+    if (btn[0] == true) {
+        plus_or_minus = 1;
+    }
+
+    if (btn[0] == false) {
+        plus_or_minus = -1;
+    }
+    //................................ovladani..drapaku.............
+
+    if(btn[1] == true){
+        if(btn[4] == false || btn[3] == false){
+            PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
+        }
+        if(btn[4] == true){
+            PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
+        }
+        if(btn[3] == true){
+            PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
+        }
+        PoziceDrapaku = PoziceNahore;
+    }
+
+    if(btn[1] == false){
+        if(btn[4] == false || btn[3] == false){
+            PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
+        }
+        if(btn[4] == true){
+            PoziceDole = PoziceDole + OKolikPosouvatPozici;
+        }
+        if(btn[3] == true){
+            PoziceDole = PoziceDole - OKolikPosouvatPozici;
+        }
+        PoziceDrapaku = PoziceDole;
+    }
+
+    if(btn[0] == true){
+        Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
+        delay(300);
+        Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Otevrena;
+    }
+    if(btn[0] == false){
+        Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Zavrena;
+        delay(300);
+        Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Zavrena;
+    }
+    servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01));
+    servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
+
+    servoBus.set(2, Angle::deg(PoziceDrapaku));
+    servoBus.set(3, Angle::deg(PoziceDrapaku));
+
+
     // udp.pri
 
     // switch (id) {
