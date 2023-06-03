@@ -1,9 +1,9 @@
 #include "BluetoothSerial.h"
 
-BluetoothSerial SerialBT;  // COM port 26 - pocitac Burda 
+BluetoothSerial SerialBT;  // COM port 26 - pocitac Burda
 
 int8_t axis[7] = {5,6,7,8,9,10,11};
-byte btn[8] = {0,0,0,0,0,0,0,0};
+byte btnx[8] = {0,0,0,0,0,0,0,0};
 byte btn_last[8] = {0,0,0,0,0,0,0,0};
 int speed_coef = 100; // nasobeni hodnoty, co leze z joysticku
 
@@ -76,7 +76,7 @@ bool read_joystick()
 
                 int8_t tmp = Serial.read();
                 axis[x] = tmp;
-                Serial.print(x);  
+                Serial.print(x);
                 Serial.print(": ");
                 Serial.print(axis[x], DEC);
                 Serial.print(" ");

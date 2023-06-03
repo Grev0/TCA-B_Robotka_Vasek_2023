@@ -39,9 +39,10 @@ int Pozice_KlepetoJedna01_Otevrena = 126;
 int Pozice_KlepetoJedna02_Zavrena = 79;
 int Pozice_KlepetoJedna02_Otevrena = 177;
 
-int OKolikPosouvatPozici = 1;
+int OKolikPosouvatPozici = 5;
 
 int plus_or_minus = 1;
+bool btn[8];
 // podle potreby proved kalibraci
 // vyrobte klepeta a nahradni baterky
 // sezeneme krabici
@@ -50,6 +51,8 @@ bool BTworks = true; // jede bluetooth a pouzivame ho?
 #include "joystick.h"  // na lorris je to COM5 - musi byt pripojeny analyzer i terminal
 void print() {
     while(true) {
+        // fmt::print("levy: {}, pravy: {} , drap{}, \n ", levy_m, pravy_m, PoziceDrapaku);
+        // printf("Pozici: %d\n", PoziceDrapaku);
         Serial.println(a);
         // udp.println(a);
         a++;
@@ -91,6 +94,13 @@ void setup() {
     rkLedYellow(true); // robot je připraven
 
     servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
+
+    // // Set servo Id (must be only one servo connected to the bus)
+    // servoBus.setId(3);
+    // while (true) {
+    //     printf("GetId: %d\n", servoBus.getId());
+    //     delay(1000);
+    // }
 
     // servoBus.setAutoStop(0, true);
     printf("Start\n");
@@ -191,13 +201,13 @@ void setup() {
             servoBus.set(2, Angle::deg(PoziceDrapaku));
             servoBus.set(3, Angle::deg(PoziceDrapaku));
 
-            if (BTworks) {
-                SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
-                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
-            }
-            else {
-                fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m);
-            }
+            // if (BTworks) {
+            //     SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
+            //     fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m );
+            // }
+            // else {
+            //     fmt::print("levy: {}, pravy: {} \n ", levy_m, pravy_m);
+            // }
 
 
             rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
@@ -254,9 +264,9 @@ void handleAxes(const char buffer[bufferSize]) {
     rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
 }
 
-void handleButton(const char btn[bufferSize], WiFiUDP &udp) {
-    size_t id = btn[buttonIdPosition];
-    uint8_t state = btn[buttonStatePosition];
+void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
+    size_t id = buffer[buttonIdPosition];
+    uint8_t state = buffer[buttonStatePosition];
 
     if (id >= buttonCount) {
         ESP_LOGE("UDP Parser", "Button id out of bounds");
@@ -266,34 +276,46 @@ void handleButton(const char btn[bufferSize], WiFiUDP &udp) {
     udp.printf("Button %u changed to %u\n", id, state);
     printf("Button %u changed to %u\n", id, state);
 
+    btn[id] = (bool)state;
 
-    //................................ovladani..drapaku.............
 
-    // if(btn[1] == true){
-    //     if(btn[4] == false || btn[3] == false){
-    //         PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
-    //     }
-    //     if(btn[4] == true){
-    //         PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
-    //     }
-    //     if(btn[3] == true){
-    //         PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
-    //     }
-    //     PoziceDrapaku = PoziceNahore;
-    // }
+    if (btn[0] == true) {
+        plus_or_minus = 1;
+        printf("Zmena smeru 1\n");
+    }
 
-    // if(btn[1] == false){
-    //     if(btn[4] == false || btn[3] == false){
-    //         PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
-    //     }
-    //     if(btn[4] == true){
-    //         PoziceDole = PoziceDole + OKolikPosouvatPozici;
-    //     }
-    //     if(btn[3] == true){
-    //         PoziceDole = PoziceDole - OKolikPosouvatPozici;
-    //     }
-    //     PoziceDrapaku = PoziceDole;
-    // }
+    if (btn[0] == false) {
+        plus_or_minus = -1;
+        printf("Zmena smeru -1\n");
+    }
+
+    if(btn[1] == true){
+        if(btn[4] == false || btn[3] == false){
+            PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
+        }
+        if(btn[4] == true){
+            PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
+        }
+        if(btn[3] == true){
+            PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
+        }
+        PoziceDrapaku = PoziceNahore;
+    }
+
+    if(btn[1] == false){
+        if(btn[4] == false || btn[3] == false){
+            PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
+        }
+        if(btn[4] == true){
+            PoziceDole = PoziceDole + OKolikPosouvatPozici;
+        }
+        if(btn[3] == true){
+            PoziceDole = PoziceDole - OKolikPosouvatPozici;
+        }
+        PoziceDrapaku = PoziceDole;
+    }
+
+    printf("Pozici: %d\n", PoziceDrapaku);
 
     // if(btn[0] == true){
     //     Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
@@ -308,34 +330,43 @@ void handleButton(const char btn[bufferSize], WiFiUDP &udp) {
     // servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01));
     // servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
 
-    // servoBus.set(2, Angle::deg(PoziceDrapaku));
-    // servoBus.set(3, Angle::deg(PoziceDrapaku));
+    servoBus.set(0, Angle::deg(PoziceDrapaku));
+    servoBus.set(1, Angle::deg(PoziceDrapaku));
+
+    servoBus.set(2, Angle::deg(PoziceDrapaku));
+    servoBus.set(3, Angle::deg(PoziceDrapaku));
 
 
-    // udp.pri
+    // if(id == 0){
+    //     if(state == 1) {
 
-    switch (id) {
-    case 0:
-        if (state) {
-            printf("plus minus 1\n");
-            plus_or_minus = 1;
-        } else {
-            printf("plus minus -1\n");
-            plus_or_minus = -1;
-        }
-    // case 3:
-    //     g_handLocked = true;
+    //     }
+    //     if (state == 0) {
+
+    //     }
+
+    // switch (id) {
+    // case 0:
+    //     if (state) {
+    //         printf("plus minus 1\n");
+    //         plus_or_minus = 1;
+    //     } else {
+    //         printf("plus minus -1\n");
+    //         plus_or_minus = -1;
+    //     }
+    // case 1:
+
     //     break;
-    // case 4:
-    //     g_leftBatteryState = state;
+    // // case 4:
+    // //     g_leftBatteryState = state;
+    // //     break;
+    // // case 5:
+    // //     g_rightBatteryState = state;
+    // //     break;
+    // // case 8:
+    // //     g_handState = state;
+    // //     break;
+    // default:
     //     break;
-    // case 5:
-    //     g_rightBatteryState = state;
-    //     break;
-    // case 8:
-    //     g_handState = state;
-    //     break;
-    default:
-        break;
-    }
+    // }
 }
