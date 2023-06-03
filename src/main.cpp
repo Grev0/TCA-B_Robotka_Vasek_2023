@@ -14,8 +14,8 @@ constexpr std::size_t bufferSize = 64;
 constexpr size_t axisOpCode = 0x80;
 constexpr size_t axisCount = 5;
 // cislo os je o dve vyssi, nez pise Lorris, protoze prvni byte je hlavicka a druhy je pocet os a az potom jsou hodnoty os
-constexpr size_t xAxisPosition = 2;
-constexpr size_t yAxisPosition = 3;
+constexpr size_t xAxisPosition = 2; // pravy nahoru dolu
+constexpr size_t yAxisPosition = 4; // levy doprava doleva
 constexpr size_t armAxisPosition = 5;
 
 constexpr size_t buttonOpCode = 0x81;
@@ -37,7 +37,7 @@ bool BTworks = true; // jede bluetooth a pouzivame ho?
 void print() {
     while(true) {
         Serial.println(a);
-        SerialBT.println(a);
+        // udp.println(a);
         a++;
         delay(1000);
     }
@@ -213,7 +213,14 @@ void handleAxes(const char buffer[bufferSize]) {
         ESP_LOGE("UDP Parser", "Wrong axis count");
     }
 
-    printf("orig x: %i\ty: %i\n", buffer[xAxisPosition], buffer[yAxisPosition]);
+    printf("Axes:");
+    for(int i = 0; i < axisCount; i++) {
+        int axis = static_cast<int8_t>(buffer[i]);
+        printf("[%d]: %d, ", i, axis);
+    }
+    printf("\n");
+
+    // printf("orig x: %i\ty: %i\n", buffer[xAxisPosition], buffer[yAxisPosition]);
     int x = static_cast<int8_t>(buffer[xAxisPosition]);
     int y = -static_cast<int8_t>(buffer[yAxisPosition]);
 
@@ -278,8 +285,6 @@ void handleAxes(const char buffer[bufferSize]) {
 }
 
 void handleButton(const char buffer[bufferSize]) {
-    auto& man = rb::Manager::get();
-
     size_t id = buffer[buttonIdPosition];
     uint8_t state = buffer[buttonStatePosition];
 
@@ -287,7 +292,10 @@ void handleButton(const char buffer[bufferSize]) {
         ESP_LOGE("UDP Parser", "Button id out of bounds");
     }
 
-    ESP_LOGI("UDP Parser", "Button %u changed to %u\n", id, state);
+    // ESP_LOGI("UDP Parser", "Button %u changed to %u\n", id, state);
+    printf("Button %u changed to %u\n", id, state);
+    // udp.pri
+
     // switch (id) {
     // case 0:
     //     if (state) {
