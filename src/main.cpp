@@ -23,23 +23,35 @@ constexpr size_t buttonCount = 14;
 constexpr size_t buttonIdPosition = 1;
 constexpr size_t buttonStatePosition = 2;
 
+int Servo_Hodnota_Nula = 0;
+int Servo_Hodnota_Jedna = 0;
+int Servo_Hodnota_Dva = 0;
+int Servo_Hodnota_Tri = 0;
+
 void handleAxes(const char buffer[bufferSize]);
 void handleButton(const char btn[bufferSize], WiFiUDP &udp);
 
-int PoziceDrapaku;
-int PoziceDole = 50;
-int PoziceNahore = 150;
+//---------Drapak-L
+int Servo_Leve_Nahore = 100;
+int Servo_Leve_Dole = 160;
+//---------Drapak-P
+int Servo_Prave_Nahore = 208;
+int Servo_Prave_Dole = 152;
 
-int Pozice_KlepetoJedna01;
-int Pozice_KlepetoJedna02;
+//----------Klepeto-L
+int Klepeto_Leve_Otevrene = 157;
+int Klepeto_Leve_Zavrene = 63;
+//----------Klepeto-P
+int Klepeto_Prave_Otevrene;
+int Klepeto_Prave_Zavrene;
 
-int Pozice_KlepetoJedna01_Zavrena = 21;
-int Pozice_KlepetoJedna01_Otevrena = 126;
 
-int Pozice_KlepetoJedna02_Zavrena = 79;
-int Pozice_KlepetoJedna02_Otevrena = 177;
+int HodnotaKlepeta;
 
 int OKolikPosouvatPozici = 5;
+
+int Pozice_Klepeta_Nastavovani = 0;
+
 
 int plus_or_minus = 1;
 bool btn[8];
@@ -53,7 +65,7 @@ void print() {
     while(true) {
         // fmt::print("levy: {}, pravy: {} , drap{}, \n ", levy_m, pravy_m, PoziceDrapaku);
         // printf("Pozici: %d\n", PoziceDrapaku);
-        Serial.println(a);
+        //Serial.println(a);
         // udp.println(a);
         a++;
         delay(1000);
@@ -93,14 +105,21 @@ void setup() {
     fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
-    servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
+    servoBus.begin(1, UART_NUM_1, GPIO_NUM_27);
 
     // // Set servo Id (must be only one servo connected to the bus)
-    // servoBus.setId(3);
-    // while (true) {
-    //     printf("GetId: %d\n", servoBus.getId());
-    //     delay(1000);
-    // }
+     servoBus.setId(3);
+     int a = 1;
+     while (true) {
+        if(a > 200){
+            a = a - 199;
+        }
+        a = a + 1;
+         printf(" %d\n", a);
+         printf("GetId: %d\n", servoBus.getId());
+         delay(100);
+         servoBus.set(3, Angle::deg(a));
+     }
 
     // servoBus.setAutoStop(0, true);
     printf("Start\n");
@@ -159,47 +178,7 @@ void setup() {
             }
             //................................ovladani..drapaku.............
 
-            if(btn[1] == true){
-                if(btn[4] == false || btn[3] == false){
-                    PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
-                }
-                if(btn[4] == true){
-                    PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
-                }
-                if(btn[3] == true){
-                    PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
-                }
-                PoziceDrapaku = PoziceNahore;
-            }
-
-            if(btn[1] == false){
-                if(btn[4] == false || btn[3] == false){
-                    PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
-                }
-                if(btn[4] == true){
-                    PoziceDole = PoziceDole + OKolikPosouvatPozici;
-                }
-                if(btn[3] == true){
-                    PoziceDole = PoziceDole - OKolikPosouvatPozici;
-                }
-                PoziceDrapaku = PoziceDole;
-            }
-
-        if(btn[0] == true){
-            Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
-            delay(300);
-            Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Otevrena;
-        }
-        if(btn[0] == false){
-            Pozice_KlepetoJedna02 = Pozice_KlepetoJedna02_Zavrena;
-            delay(300);
-            Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Zavrena;
-        }
-            servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01));
-            servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
-
-            servoBus.set(2, Angle::deg(PoziceDrapaku));
-            servoBus.set(3, Angle::deg(PoziceDrapaku));
+            
 
             // if (BTworks) {
             //     SerialBT.print(levy_m); SerialBT.print(" "); SerialBT.println(pravy_m);
@@ -213,7 +192,7 @@ void setup() {
             rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
 
             }
-        delay(1);
+        delay(5);
     }
 
 }
@@ -279,43 +258,35 @@ void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
     btn[id] = (bool)state;
 
 
-    if (btn[0] == true) {
-        plus_or_minus = 1;
-        printf("Zmena smeru 1\n");
+/*/////////////////////////////////////
+
+    if (btn[0] == true) { //Drapaky nahoru
+        Servo_Hodnota_Jedna = Servo_Leve_Nahore;
+        Servo_Hodnota_Dva = Servo_Prave_Nahore;
+        //plus_or_minus = 1;
+        //printf("Zmena smeru 1\n");
     }
 
-    if (btn[0] == false) {
-        plus_or_minus = -1;
-        printf("Zmena smeru -1\n");
+    if (btn[0] == false) {//Drapaky dolu
+        Servo_Hodnota_Jedna = Servo_Leve_Dole;
+        Servo_Hodnota_Dva = Servo_Prave_Dole;
+        //plus_or_minus = -1;
+        //printf("Zmena smeru -1\n");
     }
+*/////////////////////////////////////////////////
 
-    if(btn[1] == true){
         if(btn[4] == false || btn[3] == false){
-            PoziceNahore = PoziceNahore; // Ja vim ze je to blbost ale nech me byt
+            Pozice_Klepeta_Nastavovani = Pozice_Klepeta_Nastavovani; // Ja vim ze je to blbost ale nech me byt
         }
         if(btn[4] == true){
-            PoziceNahore = PoziceNahore + OKolikPosouvatPozici;
-        }
+            Pozice_Klepeta_Nastavovani = Pozice_Klepeta_Nastavovani + 1;
+            }
         if(btn[3] == true){
-            PoziceNahore = PoziceNahore - OKolikPosouvatPozici;
-        }
-        PoziceDrapaku = PoziceNahore;
-    }
+            Pozice_Klepeta_Nastavovani = Pozice_Klepeta_Nastavovani - 1;
+    
+} 
 
-    if(btn[1] == false){
-        if(btn[4] == false || btn[3] == false){
-            PoziceDole = PoziceDole; // Ja vim ze je to blbost ale nech me byt
-        }
-        if(btn[4] == true){
-            PoziceDole = PoziceDole + OKolikPosouvatPozici;
-        }
-        if(btn[3] == true){
-            PoziceDole = PoziceDole - OKolikPosouvatPozici;
-        }
-        PoziceDrapaku = PoziceDole;
-    }
-
-    printf("Pozici: %d\n", PoziceDrapaku);
+    printf("Pozici: %d\n", Pozice_Klepeta_Nastavovani);
 
     // if(btn[0] == true){
     //     Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
@@ -330,11 +301,10 @@ void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
     // servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01));
     // servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
 
-    servoBus.set(0, Angle::deg(PoziceDrapaku));
-    servoBus.set(1, Angle::deg(PoziceDrapaku));
+    //servoBus.set(1, Angle::deg(Servo_Hodnota_Jedna));
+    //servoBus.set(2, Angle::deg(Servo_Hodnota_Dva));
 
-    servoBus.set(2, Angle::deg(PoziceDrapaku));
-    servoBus.set(3, Angle::deg(PoziceDrapaku));
+    servoBus.set(3, Angle::deg(Pozice_Klepeta_Nastavovani));
 
 
     // if(id == 0){
