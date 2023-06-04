@@ -105,21 +105,18 @@ void setup() {
     fmt::print("{}'s SokolSus '{}' with {} mV started!\n", cfg.owner, cfg.name, rkBatteryVoltageMv());
     rkLedYellow(true); // robot je připraven
 
-    servoBus.begin(1, UART_NUM_1, GPIO_NUM_27);
+    servoBus.begin(3, UART_NUM_1, GPIO_NUM_27);
 
     // // Set servo Id (must be only one servo connected to the bus)
+    /*
      servoBus.setId(3);
-     int a = 1;
-     while (true) {
-        if(a > 200){
-            a = a - 199;
-        }
+     
         a = a + 1;
          printf(" %d\n", a);
          printf("GetId: %d\n", servoBus.getId());
          delay(100);
          servoBus.set(3, Angle::deg(a));
-     }
+     */
 
     // servoBus.setAutoStop(0, true);
     printf("Start\n");
@@ -159,23 +156,15 @@ void setup() {
             float axis_2 = (abs(axis[2]) < 10) ? 0 : -axis[2] /128.0;
             // axis_1 = axis_1*axis_1*axis_1;
 
-            int levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
-            int pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
+            int levy_m = ((axis_2 * plus_or_minus) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
+            int pravy_m = ((axis_2 * plus_or_minus) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
 
             if(levy_m + pravy_m > 160 || levy_m + pravy_m < -160) {
-                levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /4 )) * speed_coef;
-                pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /4 )) * speed_coef;
+                levy_m = ((axis_2 * plus_or_minus) - (axis_0 /4 )) * speed_coef;
+                pravy_m = ((axis_2 * plus_or_minus) + (axis_0 /4 )) * speed_coef;
             }
             //.................................jizda..dopredu..jizda..dozadu................
-            if (btn[0] == true) {
-                plus_or_minus = 1;
-                printf("Zmena smeru 1\n");
-            }
-
-            if (btn[0] == false) {
-                plus_or_minus = -1;
-                printf("Zmena smeru -1\n");
-            }
+           
             //................................ovladani..drapaku.............
 
             
@@ -232,13 +221,13 @@ void handleAxes(const char buffer[bufferSize]) {
     float axis_2 = (abs(y) < 10) ? 0 : -y /128.0;
     // axis_1 = axis_1*axis_1*axis_1;
 
-    int levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
-    int pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
+    int levy_m = ((axis_2 * plus_or_minus) - (axis_0 /2 )) * speed_coef;  // hodnota pro levy motor
+    int pravy_m = ((axis_2 * plus_or_minus) + (axis_0 /2 )) * speed_coef; // hodnota pro pravy motor
 
-    // if(levy_m + pravy_m > 160 || levy_m + pravy_m < -160) {
-    //     levy_m = ((axis_2 * -plus_or_minus) - (axis_0 /4 )) * speed_coef;
-    //     pravy_m = ((axis_2 * -plus_or_minus) + (axis_0 /4 )) * speed_coef;
-    // }
+    if(levy_m + pravy_m > 160 || levy_m + pravy_m < -160) {
+         levy_m = ((axis_2 * plus_or_minus) - (axis_0 /4 )) * speed_coef;
+         pravy_m = ((axis_2 * plus_or_minus) + (axis_0 /4 )) * speed_coef;
+    }
 
     rkMotorsSetPower(levy_m, pravy_m); //rkMotorsSetSpeed jede sotva polovicni rychlosti !!
 }
@@ -257,23 +246,30 @@ void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
 
     btn[id] = (bool)state;
 
+     if (btn[0] == true) {
+                plus_or_minus = 1;
+                printf("Zmena smeru 1\n");
+            }
 
-/*/////////////////////////////////////
+            if (btn[0] == false) {
+                plus_or_minus = -1;
+                printf("Zmena smeru -1\n");
+            }
 
-    if (btn[0] == true) { //Drapaky nahoru
+    if (btn[1] == true) { //Drapaky nahoru
         Servo_Hodnota_Jedna = Servo_Leve_Nahore;
         Servo_Hodnota_Dva = Servo_Prave_Nahore;
         //plus_or_minus = 1;
         //printf("Zmena smeru 1\n");
     }
 
-    if (btn[0] == false) {//Drapaky dolu
+    if (btn[1] == false) {//Drapaky dolu
         Servo_Hodnota_Jedna = Servo_Leve_Dole;
         Servo_Hodnota_Dva = Servo_Prave_Dole;
         //plus_or_minus = -1;
         //printf("Zmena smeru -1\n");
     }
-*/////////////////////////////////////////////////
+
 
         if(btn[4] == false || btn[3] == false){
             Pozice_Klepeta_Nastavovani = Pozice_Klepeta_Nastavovani; // Ja vim ze je to blbost ale nech me byt
@@ -286,7 +282,9 @@ void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
     
 } 
 
-    printf("Pozici: %d\n", Pozice_Klepeta_Nastavovani);
+    printf("Pozice celkova: %d\n", Pozice_Klepeta_Nastavovani);
+    printf("Servo_Hodnota_Jedna: %d\n", Servo_Hodnota_Jedna);
+    printf("Pozici Servo_Hodnota_Dva: %d\n", Servo_Hodnota_Dva);
 
     // if(btn[0] == true){
     //     Pozice_KlepetoJedna01 = Pozice_KlepetoJedna01_Otevrena;
@@ -301,10 +299,10 @@ void handleButton(const char buffer[bufferSize], WiFiUDP &udp) {
     // servoBus.set(0, Angle::deg(Pozice_KlepetoJedna01));
     // servoBus.set(1, Angle::deg(Pozice_KlepetoJedna02));
 
-    //servoBus.set(1, Angle::deg(Servo_Hodnota_Jedna));
-    //servoBus.set(2, Angle::deg(Servo_Hodnota_Dva));
+    servoBus.set(1, Angle::deg(Servo_Hodnota_Jedna));
+    servoBus.set(2, Angle::deg(Servo_Hodnota_Dva));
 
-    servoBus.set(3, Angle::deg(Pozice_Klepeta_Nastavovani));
+    //servoBus.set(3, Angle::deg(Pozice_Klepeta_Nastavovani));
 
 
     // if(id == 0){
